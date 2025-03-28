@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DJANGO_DEBUG", cast=bool)
+DEBUG = config("DJANGO_DEBUG", cast=bool, default=True)
 
-ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", cast=list)
+ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", cast=list, default=["*"])
 
 
 # Application definition
@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    
+    "sensors",
 ]
 
 MIDDLEWARE = [
@@ -81,6 +83,19 @@ DATABASES = {
     }
 }
 
+
+DATABASE_URL = config("DATABASE_URL", cast=str, default="")
+
+if DATABASE_URL != "":
+    import dj_database_url
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            engine='timescale.db.backends.postgresql',
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
