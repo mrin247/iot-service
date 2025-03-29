@@ -20,12 +20,14 @@ services:
       - timescale_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  web:
+  django-base: &django-base
     networks:
       - edge
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env.web-container
     develop:
       watch:
         - action: sync+restart
@@ -34,14 +36,38 @@ services:
         - action: sync+restart
           path: ./requirements.txt
           target: /tmp/requirements.txt
-            
+    
+  web:
+    <<: *django-base
     environment:
       - NODE_ID=0
       - PORT=8088
-    env_file:
-      - .env.web-container
     ports:
       - 8088:8088
+  beat:
+    <<: *django-base
+    environment:
+      - NODE_ID=0
+    command: |
+      celery -A edge beat --loglevel=info
+  node_1:
+    <<: *django-base
+    environment:
+      - NODE_ID=1
+    command: |
+      celery -A edge worker --pool=eventlet -Q node-1 --loglevel=info
+  node_2:
+    <<: *django-base
+    environment:
+      - NODE_ID=2
+    command: |
+      celery -A edge worker --pool=eventlet -Q node-2 --loglevel=info
+  node_3:
+    <<: *django-base
+    environment:
+      - NODE_ID=3
+    command: |
+      celery -A edge worker --pool=eventlet -Q node-3 --loglevel=info
 
 volumes:
   redis_data:

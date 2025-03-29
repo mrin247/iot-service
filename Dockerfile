@@ -56,8 +56,10 @@ ARG PROJ_NAME="edge"
 # the container starts and the database is available
 RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
+    printf "./wait-for-it.sh timescaledb:5432 --timeout=30 --strict -- echo 'Database is up!'\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
+
 
 # make the bash script executable
 RUN chmod +x paracord_runner.sh
