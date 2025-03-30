@@ -1,0 +1,1 @@
+ANSIBLE_CONFIG=/mnt/c/Users/hp/Desktop/TSD/iot-service/ansible/ansible.cfg ansible-playbook -i /mnt/c/Users/hp/Desktop/TSD/iot-service/ansible/inventory.ini playbooks/connect_hosts.yaml
