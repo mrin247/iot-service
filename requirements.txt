@@ -11,3 +11,4 @@ gunicorn
 kombu
 whitenoise
 eventlet
+django-ninja
