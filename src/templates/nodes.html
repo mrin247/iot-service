@@ -1,67 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edge Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .chart-container {
+            width: 90vw;
+            height: 80vh;
+            background: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 </head>
 <body>
-    
-
-    <div>
+    <div class="chart-container">
         <canvas id="myChart"></canvas>
-      </div>
-      
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      
-      <script>
-        const ctx = document.getElementById('myChart');
-        fetch('/api/temps/nodes').then(res=>res.json()).then(data=>{
-            const nodes =  [...new Set(data.map(d => d.node_id))].sort((a, b)=> a-b)
-            // const nodes = [1, 2]
-            const timeLabels = [...new Set(data.map(d => new Date(d.time_group).toLocaleTimeString()))].sort((a, b) => new Date('1970/01/01 ' + a) - new Date('1970/01/01 ' + b));
-
-            let datasets = nodes.map(nodeId => {
-                const nodeData = data.filter(d => d.node_id === nodeId);
-                return {
-                    label: `Node ${nodeId}`,
-                    data: timeLabels.map(time => {
-                        const point = nodeData.find(d => new Date(d.time_group).toLocaleTimeString() === time);
-                        return point ? point.average_temp : null;
-                    }),
-                    borderWidth: 1,
-                    fill: false
-                };
-            });
-
-            new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: timeLabels,
-                datasets: datasets
-            },
-            options: {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'category',
-                    title: {
-                        display: true,
-                        text: 'Time'
+    </div>
+    
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        fetch('/api/temps/nodes')
+            .then(res => res.json())
+            .then(data => {
+                const nodes = [...new Set(data.map(d => d.node_id))].sort((a, b) => a - b);
+                const timeLabels = [...new Set(data.map(d => new Date(d.time_group).toLocaleTimeString()))].sort((a, b) => new Date('1970/01/01 ' + a) - new Date('1970/01/01 ' + b));
+                
+                let datasets = nodes.map(nodeId => {
+                    const nodeData = data.filter(d => d.node_id === nodeId);
+                    return {
+                        label: `Node ${nodeId}`,
+                        data: timeLabels.map(time => {
+                            const point = nodeData.find(d => new Date(d.time_group).toLocaleTimeString() === time);
+                            return point ? point.average_temp : null;
+                        }),
+                        borderWidth: 2,
+                        borderColor: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 3
+                    };
+                });
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: timeLabels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'category',
+                                title: {
+                                    display: true,
+                                    text: 'Time',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Average Temperature',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' }
+                            }
+                        }
                     }
-                },
-                y: {
-                    beginAtZero: false,
-                    title: {
-                        display: true,
-                        text: 'Average Temperature'
-                    }
-                }
-            }
-        }
+                });
             });
-        })
-        
-      </script>
-
-
+    </script>
 </body>
 </html>
